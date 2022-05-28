@@ -28,13 +28,13 @@ export const saveSessionCode = async (sessionCode: string, userId: number):Promi
     return true;
 }
 
-export const doesSessionExist = async (sessionCode: string, userId: number): Promise<boolean> => {
+export const doesSessionExist = async (sessionCode: string, hostUserId: number): Promise<boolean> => {
     let conn;
 
     try {
         conn = await pool.getConnection();
 
-        const checkIfSessionExists = await conn.query('SELECT id FROM `Session` WHERE `code` = ? AND host = ?', [sessionCode, userId]);
+        const checkIfSessionExists = await conn.query('SELECT id FROM `Session` WHERE `code` = ? AND host = ?', [sessionCode, hostUserId]);
         
         conn.release();
         
@@ -45,7 +45,30 @@ export const doesSessionExist = async (sessionCode: string, userId: number): Pro
     } catch (error) {
         conn.release();
         console.error(error);
-        return true;
+        return false;
+    }
+
+    return false;
+}
+
+export const getSessionHost= async (hostName: string) => {
+    let conn;
+
+    try {
+        conn = await pool.getConnection();
+
+        const sessionHostToken = await conn.query('SELECT user.id, token FROM user INNER JOIN spotify_access_token sat ON user.id = sat.user_id WHERE username = ?', [hostName]);
+        conn.release();
+        
+        if (sessionHostToken.length > 0) {
+            // Will contain id & token
+            return sessionHostToken[0];
+        }
+
+    } catch (error) {
+        conn.release();
+        console.error(error);
+        return false;
     }
 
     return false;

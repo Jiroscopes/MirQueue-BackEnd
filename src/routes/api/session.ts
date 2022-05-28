@@ -1,7 +1,8 @@
 import express from 'express'
 import { getUserInfo } from '../../db/user'
-import { doesSessionExist, saveSessionCode } from '../../db/session'
+import { doesSessionExist, saveSessionCode, getSessionHost } from '../../db/session'
 import config from '../../config'
+import Request from '../../Request';
 
 const router = express.Router();
 
@@ -55,6 +56,39 @@ async function getSessionCode(req: any, res: any) {
     
 	res.sendStatus(200);
 	return;
+}
+
+export async function addSong(msg: any) {
+
+	const {uri, session, user} = msg;
+	let {token: hostToken, id: hostId} = await getSessionHost(session.host);
+
+	if(!hostToken || !hostId) {
+		// Failed
+		return {status: 'failure', message: 'Host not found.'};
+	};
+	
+	if(!doesSessionExist(session.sessionCode, hostId)) {
+		// Failed
+		return {status: 'failure', message: 'Session not found.'};
+	}
+
+	const uriPath = `/v1/me/player/queue?uri=${encodeURIComponent(uri)}`;
+
+	let addReq = new Request({
+	  host: 'api.spotify.com',
+	  port: 443,
+	  path: uriPath,
+	  method: 'POST',
+	  headers: {
+		// @ts-ignore  
+		'Content-Type': 'application/x-www-form-urlencoded',
+		Authorization: `Bearer ${hostToken}`,
+	  },
+	});
+
+	// Do the thing
+	await addReq.execute();
 }
 
 export default router;

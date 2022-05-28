@@ -9,9 +9,7 @@ router.post('/', search);
 
 // Take a string and return any data
 async function search(req: any, res: any) {
-
-    console.log(req.body)
-
+    
     // User can be a guest
     if (!req.body.username || !req.body.searchParam || !req.body.sessionCode || !req.body.host) {
         res.sendStatus(400);
