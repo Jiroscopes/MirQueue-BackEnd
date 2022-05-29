@@ -18,7 +18,7 @@ async function search(req: any, res: any) {
 
     let {host, sessionCode, searchParam, user} = req.body;
 
-    if (!doesSessionExist(sessionCode, host)) {
+    if (!(await doesSessionExist(sessionCode, host.host))) {
 		// Conflict
 		res.sendStatus(409);
         return;

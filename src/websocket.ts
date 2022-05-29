@@ -10,7 +10,7 @@ wsServer.on('connection', socket => {
 		if (msg.type === 'add_song') {
 			let addReq = await addSong(msg);
 			// Let the client decide what to do
-			socket.send(addReq);
+			socket.send(JSON.stringify(addReq));
 		}
     });
 });

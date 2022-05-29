@@ -45,7 +45,7 @@ async function getSessionCode(req: any, res: any) {
 		return;
 	}
 
-	if(await doesSessionExist(code, userFromDB.id)) {
+	if(await doesSessionExist(code, username)) {
 		// Conflict
 		res.sendStatus(409);
 		return;
@@ -60,15 +60,15 @@ async function getSessionCode(req: any, res: any) {
 
 export async function addSong(msg: any) {
 
-	const {uri, session, user} = msg;
-	let {token: hostToken, id: hostId} = await getSessionHost(session.host);
+	const {uri, session, user, trackID, trackName} = msg;
+	let {token: hostToken} = await getSessionHost(session.host);
 
-	if(!hostToken || !hostId) {
+	if(!hostToken) {
 		// Failed
 		return {status: 'failure', message: 'Host not found.'};
 	};
-	
-	if(!doesSessionExist(session.sessionCode, hostId)) {
+
+	if(!(await doesSessionExist(session.sessionCode, session.host))) {
 		// Failed
 		return {status: 'failure', message: 'Session not found.'};
 	}
@@ -89,6 +89,8 @@ export async function addSong(msg: any) {
 
 	// Do the thing
 	await addReq.execute();
+
+	return {status: 'success', message: 'Added to queue.', track: {id: trackID, name: trackName}}
 }
 
 export default router;
