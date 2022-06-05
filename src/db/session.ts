@@ -34,7 +34,7 @@ export const doesSessionExist = async (sessionCode: string, hostName: string): P
     try {
         conn = await pool.getConnection();
 
-        const checkIfSessionExists = await conn.query('SELECT s.id FROM session s INNER JOIN user u ON u.id = s.host WHERE code = ? AND username = ?', [sessionCode, hostName]);
+        const checkIfSessionExists = await conn.query('SELECT s.id FROM session s INNER JOIN User u ON u.id = s.host WHERE code = ? AND username = ?', [sessionCode, hostName]);
         
         conn.release();
 
@@ -56,7 +56,7 @@ export const getSessionHost= async (hostName: string) => {
     try {
         conn = await pool.getConnection();
 
-        const sessionHostToken = await conn.query('SELECT token FROM user INNER JOIN spotify_access_token sat ON user.id = sat.user_id WHERE username = ?', [hostName]);
+        const sessionHostToken = await conn.query('SELECT token FROM User INNER JOIN spotify_access_token sat ON User.id = sat.user_id WHERE username = ?', [hostName]);
         conn.release();
         
         if (sessionHostToken.length > 0) {

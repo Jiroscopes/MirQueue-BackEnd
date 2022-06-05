@@ -86,7 +86,6 @@ export const saveUser = async (username: string, email: string): Promise<number>
 
     try {
         conn = await pool.getConnection();
-
         // Check if user exists
         const checkUser = await conn.query('SELECT `id` FROM `User` WHERE `username` = ? AND `email` = ?', [username, email]);
 
@@ -177,7 +176,7 @@ export const getUserInfo = async (token: string): Promise<User> => {
         conn = await pool.getConnection();
         
         // Get email and username
-        const userInfo = await conn.query('SELECT u.id, username, email FROM user u INNER JOIN Spotify_Access_Token sat ON u.id = sat.user_id WHERE sat.token = ?', token);
+        const userInfo = await conn.query('SELECT u.id, username, email FROM User u INNER JOIN Spotify_Access_Token sat ON u.id = sat.user_id WHERE sat.token = ?', token);
         conn.release();
 
         if (userInfo.length === 0) {

@@ -7,6 +7,7 @@ const pool = mariadb.createPool({
     password: config.db.password,
     connectionLimit: 5,
     database: config.db.database,
+    port: config.db.port
 });
 
 export default pool;
