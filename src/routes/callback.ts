@@ -48,7 +48,7 @@ const getAuthTokens = async (authCode: string) => {
         body: {
             grant_type: 'authorization_code',
             code: authCode,
-            redirect_uri: config.redirect_url(),
+            redirect_uri: `${process.env.BACKEND_URL}/callback`,
         },
     });
 
