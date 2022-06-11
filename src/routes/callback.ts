@@ -25,11 +25,11 @@ router.get('/', async (req, res) => {
         saveRefreshToken(tokens.refresh_token, userId);
 
         // redirect to frontend with access code.
-        res.redirect(`http://localhost:3000?access_token=${tokens.access_token}`);
+        res.redirect(`${process.env.APP_URL}?access_token=${tokens.access_token}`);
     }
 
     if (userId === 0) {
-        res.redirect(`http://localhost:3000/login`);
+        res.redirect(`${process.env.APP_URL}/login`);
     }
 });
 

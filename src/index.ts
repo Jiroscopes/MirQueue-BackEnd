@@ -24,7 +24,6 @@ getClientCreds().then(val => {
     config.client_creds = val;
     server = app.listen( config.port, () => {
         // tslint:disable-next-line:no-console
-        console.log( `server started at http://localhost:${ config.port }` );
     });
 
     server.on('upgrade', (req: any, socket: any, head: any) => {
