@@ -7,6 +7,7 @@ import Request from '../../Request';
 const router = express.Router();
 
 router.post('/code', getSessionCode);
+router.post('/valid', isValidSessionCode);
 
 // /api/session/code
 
@@ -55,6 +56,48 @@ async function getSessionCode(req: any, res: any) {
 	saveSessionCode(code, userFromDB.id);
     
 	res.sendStatus(200);
+	return;
+}
+
+export async function isValidSessionCode(req: any, res: any) {
+	if (!req.body.user || !req.body.token || !req.body.code) {
+		res.sendStatus(400);
+        return;
+    }
+
+	let { username, email } = req.body.user
+	let { token } = req.body;
+
+	// Code will be like "<username>/<code>"
+	let splitCode = req.body.code.split('/');
+	let host = splitCode[0];
+	let code = splitCode[1];
+
+	if (!username || !email) {
+		res.sendStatus(401);
+		return;
+	}
+
+	// Verify token and user match DB
+	let userFromDB = await getUserInfo(token);
+
+	if (userFromDB.username !== username || userFromDB.email !== email) {
+		res.sendStatus(401);
+		return;
+	}
+
+	console.log(code);
+	console.log(username);
+
+	// Verify session
+	if(await doesSessionExist(code, username)) {
+		// Success
+		res.sendStatus(200);
+		return;
+	}
+
+	// No Session
+	res.sendStatus(400);
 	return;
 }
 

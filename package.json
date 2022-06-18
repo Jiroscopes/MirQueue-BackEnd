@@ -7,7 +7,7 @@
 		"build": "tsc",
 		"start": "node .",
 		"dev": "tsc && node .",
-		"watch": "nodemon -e ts  --exec \"npm run dev\"",
+		"watch": "nodemon -L -e ts  --exec \"npm run dev\"",
 		"test": "jest --testTimeout=10000"
 	},
 	"author": "Steven Popick",
