@@ -2,21 +2,23 @@ import express from 'express';
 import router from './routes';
 import config from './config';
 import cors from 'cors';
+import * as path from 'path';
 import { getClientCreds } from './ClientCreds';
 import { wsServer } from './websocket';
 
 const app = express();
 
-// define a route handler for the default home page
-app.get( "/", ( req, res ) => {
-    res.send( "Hello world!!!!!" );
-} );
+app.use(express.static(path.resolve(__dirname, '../../client/build')));
 
 app.use(cors());
 app.use(express.json()) 
 app.use(router)
 
 let server: any;
+
+app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../../client/build', 'index.html'));
+});
 
 // Don't start the server until the client codes have been given
 getClientCreds().then(val => {    
