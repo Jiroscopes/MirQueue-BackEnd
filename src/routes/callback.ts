@@ -13,7 +13,6 @@ router.get('/', async (req, res) => {
     }
 
     let tokens: any = await getAuthTokens(req.query['code'] as string);
-    // saveAccessToken(tokens.access_token);
 
     const [username, email] = await getUsernameAndEmail(tokens.access_token);
     // save user first, get id of user inserted
@@ -21,8 +20,8 @@ router.get('/', async (req, res) => {
     
     if (userId > 0) {
         // Save Tokens
-        saveAccessToken(tokens.access_token, userId);
-        saveRefreshToken(tokens.refresh_token, userId);
+        saveAccessToken(tokens.access_token, username);
+        saveRefreshToken(tokens.refresh_token, username);
 
         // redirect to frontend with access code.
         res.redirect(`${process.env.APP_URL}?access_token=${tokens.access_token}`);

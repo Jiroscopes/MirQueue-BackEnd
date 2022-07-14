@@ -1,13 +1,15 @@
 import express from 'express'
 import { getUserInfo } from '../../db/user'
+import { refreshAuthToken } from '../../user'
 import { doesSessionExist, saveSessionCode, getSessionHost } from '../../db/session'
 import config from '../../config'
 import Request from '../../Request';
-
+import { getPlayback } from './sessionHost'
 const router = express.Router();
 
 router.post('/code', getSessionCode);
 router.post('/valid', isValidSessionCode);
+router.post('/host/playback', getPlayback);
 
 // /api/session/code
 
@@ -86,11 +88,8 @@ export async function isValidSessionCode(req: any, res: any) {
 		return;
 	}
 
-	console.log(code);
-	console.log(username);
-
 	// Verify session
-	if(await doesSessionExist(code, username)) {
+	if(await doesSessionExist(code, host)) {
 		// Success
 		res.sendStatus(200);
 		return;
@@ -118,20 +117,40 @@ export async function addSong(msg: any) {
 
 	const uriPath = `/v1/me/player/queue?uri=${encodeURIComponent(uri)}`;
 
-	let addReq = new Request({
-	  host: 'api.spotify.com',
-	  port: 443,
-	  path: uriPath,
-	  method: 'POST',
-	  headers: {
-		// @ts-ignore  
-		'Content-Type': 'application/x-www-form-urlencoded',
-		Authorization: `Bearer ${hostToken}`,
-	  },
-	});
 
-	// Do the thing
-	await addReq.execute();
+	let requestOptions = {
+		host: 'api.spotify.com',
+		port: 443,
+		path: uriPath,
+		method: 'POST',
+		headers: {
+		  'Content-Type': 'application/x-www-form-urlencoded',
+		  Authorization: `Bearer ${hostToken}`,
+		},
+	};
+
+	let addReq = new Request(requestOptions);
+
+	try {
+		// Do the thing
+		await addReq.execute();
+	} catch (err) {
+		if (err.message === 'refresh') {
+			// Refresh host token in DB
+			let newToken = await refreshAuthToken(session.host);
+			requestOptions.headers.Authorization = `Bearer ${newToken.access_token}`
+			try {
+				let addReqRetry = new Request(requestOptions);
+				await addReqRetry.execute();
+			} catch (error) {
+				// We failed again
+				return {status: 'failure', message: 'Host unavailable'}
+			}
+
+			return {status: 'success', message: 'Added to queue.', track: {id: trackID, name: trackName}}
+		}
+		return {status: 'failure', message: 'Something went wrong'}
+	}
 
 	return {status: 'success', message: 'Added to queue.', track: {id: trackID, name: trackName}}
 }

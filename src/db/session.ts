@@ -33,7 +33,6 @@ export const doesSessionExist = async (sessionCode: string, hostName: string): P
 
     try {
         conn = await pool.getConnection();
-
         const checkIfSessionExists = await conn.query('SELECT s.id FROM Session s INNER JOIN User u ON u.id = s.host WHERE code = ? AND username = ?', [sessionCode, hostName]);
         
         conn.release();

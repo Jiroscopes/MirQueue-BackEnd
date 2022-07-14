@@ -1,6 +1,5 @@
 import https from 'https';
 import querystring from 'querystring';
-
 interface RequestHeaders {
     'Content-Type'?: string;
     Authorization?: string;
