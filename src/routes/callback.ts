@@ -20,8 +20,9 @@ router.get('/', async (req, res) => {
     
     if (userId > 0) {
         // Save Tokens
-        saveAccessToken(tokens.access_token, username);
-        saveRefreshToken(tokens.refresh_token, username);
+        if (!saveAccessToken(tokens.access_token, username) || !saveRefreshToken(tokens.refresh_token, username)) {
+            res.redirect(`${process.env.APP_URL}/login`);
+        }
 
         // redirect to frontend with access code.
         res.redirect(`${process.env.APP_URL}?access_token=${tokens.access_token}`);

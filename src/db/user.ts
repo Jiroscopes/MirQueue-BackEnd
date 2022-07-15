@@ -16,7 +16,7 @@ const updateRefreshToken = async (token: string, username: string): Promise<bool
     try {
         conn = await pool.getConnection();
         
-        const res = await conn.query('UPDATE `Spotify_Refresh_Token` SET token = ?, date_added = CURRENT_TIMESTAMP() WHERE username = ?', [token, username]);
+        const res = await conn.query('UPDATE `Spotify_Refresh_Token` srt INNER JOIN User u ON u.id = srt.user_id SET token = ?, srt.date_added = CURRENT_TIMESTAMP() WHERE username = ?', [token, username]);
         conn.release();
 
         if (res.affectedRows !== 1) {
