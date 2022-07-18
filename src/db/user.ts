@@ -197,7 +197,6 @@ export const getUserInfo = async (token: string): Promise<User> => {
         return null;
     }
 
-
     try {
         conn = await pool.getConnection();
         

@@ -8,7 +8,8 @@ import { wsServer } from './websocket';
 
 const app = express();
 
-app.use(express.static(path.resolve(__dirname, '../../client/build')));
+// Allow dotfiles - this is required for verification by Lets Encrypt's certbot
+app.use(express.static(path.resolve(__dirname, '../../client/build'), {dotfiles: 'allow'}));
 
 app.use(cors());
 app.use(express.json()) 
@@ -17,7 +18,7 @@ app.use(router)
 let server: any;
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../client/build', 'index.html'));
+    res.sendFile(path.resolve(__dirname, '../../client/build', 'index.html'), {dotfiles: 'allow'});
 });
 
 // Don't start the server until the client codes have been given
