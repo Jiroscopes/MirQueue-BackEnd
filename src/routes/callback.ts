@@ -12,7 +12,24 @@ router.get('/', async (req, res) => {
         return;
     }
 
-    let tokens: any = await getAuthTokens(req.query['code'] as string);
+    const state = req.query.state || null;
+    const storedState = req.cookies ? req.cookies['spotify_auth_state'] : null;
+    const authCode = req.query['code'] || null;
+
+    // State must exist and match
+    if (state === null || storedState === null || state !== storedState) {
+        res.redirect(`${process.env.APP_URL}/login`);
+        return;
+    }
+
+    res.clearCookie('spotify_auth_state');
+
+    if (authCode === null) {
+        res.redirect(`${process.env.APP_URL}/login`);
+        return;
+    }
+
+    let tokens: any = await getAuthTokens(authCode as string);
 
     const [username, email] = await getUsernameAndEmail(tokens.access_token);
     // save user first, get id of user inserted

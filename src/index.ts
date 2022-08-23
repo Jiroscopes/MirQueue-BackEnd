@@ -1,12 +1,13 @@
 import express from 'express';
 import router from './routes';
 import config from './config';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import * as path from 'path';
 import { getClientCreds } from './ClientCreds';
 import { wsServer } from './websocket';
-
 const app = express();
+app.use(cookieParser());
 
 // Allow dotfiles - this is required for verification by Lets Encrypt's certbot
 app.use(express.static(path.resolve(__dirname, '../../client/build'), {dotfiles: 'allow'}));
