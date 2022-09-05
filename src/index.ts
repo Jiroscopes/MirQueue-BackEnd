@@ -7,6 +7,10 @@ import cors from 'cors';
 import * as path from 'path';
 import { getClientCreds } from './ClientCreds';
 import { wsServer } from './websocket';
+import MySQLSessionStore from 'express-mysql-session';
+// @ts-ignore
+const MySQLStore = MySQLSessionStore(session);
+
 const app = express();
 app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
 // app.use(cors({credentials: true}));
@@ -14,10 +18,11 @@ app.use(cookieParser('p1$N0H4cKM3'));
 
 const oneDay = 1000 * 60 * 60 * 24;
 
-var sessionConfig = {
+const sessionConfig = {
     secret: 'p1$N0H4cKM3',
     saveUninitialized: false,
     resave: false,
+    store: new MySQLStore(config.db),
     cookie: {
         secure: false,
         maxAge: oneDay,
@@ -29,7 +34,6 @@ if (config.env === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sessionConfig.cookie.secure = true // serve secure cookies
 }
-
 app.use(session(sessionConfig))
 
 // Allow dotfiles - this is required for verification by Lets Encrypt's certbot
