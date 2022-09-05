@@ -9,10 +9,9 @@ const router = express.Router();
 router.post('/', searchHandler);
 
 // Take a string and return any data
-async function searchHandler(req: any, res: any) {
+async function searchHandler(req: any, res: any) {    
     
-    // User can be a guest
-    if (!req.body.username || !req.body.searchParam || !req.body.sessionCode || !req.body.host) {
+    if (!req.body.searchParam || !req.body.sessionCode || !req.body.host) {
         res.sendStatus(400);
         return;
     }

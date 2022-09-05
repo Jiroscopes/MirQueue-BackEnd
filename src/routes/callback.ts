@@ -3,6 +3,7 @@ import Request from '../Request'
 import config from '../config/';
 import { getUsernameAndEmail } from '../user'
 import { saveAccessToken, saveRefreshToken, saveUser } from '../db/user';
+import '../custom-types';
 
 const router = express.Router();
 
@@ -32,20 +33,30 @@ router.get('/', async (req, res) => {
     let tokens: any = await getAuthTokens(authCode as string);
 
     const [username, email] = await getUsernameAndEmail(tokens.access_token);
-    // save user first, get id of user inserted
-    let userId = await saveUser(username, email);
+    // save user first
+    let verifiedUser = await saveUser(username, email);
     
-    if (userId > 0) {
+    if (verifiedUser) {
         // Save Tokens
         if (!saveAccessToken(tokens.access_token, username) || !saveRefreshToken(tokens.refresh_token, username)) {
             res.redirect(`${process.env.APP_URL}/login`);
         }
 
-        // redirect to frontend with access code.
-        res.redirect(`${process.env.APP_URL}?access_token=${tokens.access_token}`);
+        req.session.accessToken = tokens.access_token;
+        req.session.refreshToken = tokens.refresh_token;
+        req.session.saveDate = Math.floor(Date.now() / 1000);
+        req.session.expires_in = tokens.expires_in;
+        req.session.username = username;
+        req.session.email = email;
+
+        req.session.save(() => {    
+            // redirect to frontend with access code.
+            res.cookie('mirqueue_user', username)
+            res.redirect(`${process.env.APP_URL}`);
+        });
     }
 
-    if (userId === 0) {
+    if (!verifiedUser) {
         res.redirect(`${process.env.APP_URL}/login`);
     }
 });

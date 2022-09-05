@@ -16,7 +16,7 @@ const updateRefreshToken = async (token: string, username: string): Promise<bool
     try {
         conn = await pool.getConnection();
         
-        const res = await conn.query('UPDATE `Spotify_Refresh_Token` srt INNER JOIN User u ON u.id = srt.user_id SET token = ?, srt.date_added = CURRENT_TIMESTAMP() WHERE username = ?', [token, username]);
+        const res = await conn.query('UPDATE `Spotify_Refresh_Token` SET token = ?, date_added = CURRENT_TIMESTAMP() WHERE user = ?', [token, username]);
         conn.release();
 
         if (res.affectedRows !== 1) {
@@ -39,7 +39,7 @@ export const getRefreshToken = async (username: string): Promise<string> => {
     try {
         conn = await pool.getConnection();
 
-        const res = await conn.query('SELECT token FROM `Spotify_Refresh_Token` srt INNER JOIN User u ON u.id = srt.user_id WHERE u.username = ?', [username]);
+        const res = await conn.query('SELECT token FROM `Spotify_Refresh_Token` WHERE user = ?', [username]);
         conn.release();
 
         if (res.length < 1) {
@@ -68,7 +68,7 @@ export const saveAccessToken = async (token: string, username: string): Promise<
     try {
         conn = await pool.getConnection();
 
-        const checkToken = await conn.query('SELECT user_id, token FROM `Spotify_Access_Token` sat INNER JOIN User u ON u.id = sat.user_id WHERE username = ?', username);
+        const checkToken = await conn.query('SELECT token FROM `Spotify_Access_Token` WHERE user = ?', username);
 
         if (checkToken.length > 0) {
             conn.release();
@@ -76,7 +76,7 @@ export const saveAccessToken = async (token: string, username: string): Promise<
             return await updateAccessToken(token, username);
         }
 
-        const res = await conn.query('INSERT INTO `Spotify_Access_Token` (`token`, `user_id`) VALUES (?, ?)', [token, checkToken[0].user_id]);
+        const res = await conn.query('INSERT INTO `Spotify_Access_Token` (`token`, `user`) VALUES (?, ?)', [token, username]);
 
         conn.release();
         
@@ -103,7 +103,7 @@ export const saveRefreshToken = async (token: string, username: string): Promise
     try {
         conn = await pool.getConnection();
 
-        const checkToken = await conn.query('SELECT user_id, token FROM `Spotify_Refresh_Token` srt INNER JOIN User u ON u.id = srt.user_id WHERE username = ?', username);
+        const checkToken = await conn.query('SELECT token FROM `Spotify_Refresh_Token` WHERE user = ?', username);
 
         if (checkToken.length > 0) {
             conn.release();
@@ -111,7 +111,7 @@ export const saveRefreshToken = async (token: string, username: string): Promise
             return await updateRefreshToken(token, username);
         }
 
-        const res = await conn.query('INSERT INTO `Spotify_Refresh_Token` (`token`, `user_id`) VALUES (?, ?)', [token, checkToken[0].user_id]);
+        const res = await conn.query('INSERT INTO `Spotify_Refresh_Token` (`token`, `user`) VALUES (?, ?)', [token, username]);
 
         conn.release();
 
@@ -129,21 +129,21 @@ export const saveRefreshToken = async (token: string, username: string): Promise
     return true;
 }
 
-export const saveUser = async (username: string, email: string): Promise<number> => {
+export const saveUser = async (username: string, email: string): Promise<boolean> => {
     let conn;
 
     if (username === undefined || email === undefined) {
-        return 0;
+        return false;
     }
 
     try {
         conn = await pool.getConnection();
         // Check if user exists
-        const checkUser = await conn.query('SELECT `id` FROM `User` WHERE `username` = ? AND `email` = ?', [username, email]);
+        const checkUser = await conn.query('SELECT username FROM `User` WHERE `username` = ? AND `email` = ?', [username, email]);
 
         if (checkUser.length > 0) {
             conn.release();
-            return checkUser[0].id;
+            return true;
         }
 
         const res = await conn.query('INSERT INTO `User` (`username`, `email`) VALUES (?, ?)', [username, email]);
@@ -152,13 +152,13 @@ export const saveUser = async (username: string, email: string): Promise<number>
 
         if (res.affectedRows !== 1) {
             console.error('Failed to save the user');
-            return 0;
+            return false;
         }
-        return res.insertId
+        return true;
     } catch (err) {
         conn.release();
         console.error(err);
-        return 0;
+        return false;
     }
 }
 
@@ -172,7 +172,7 @@ export const updateAccessToken = async (token: string, username: string): Promis
     try {
         conn = await pool.getConnection();
         
-        const res = await conn.query('UPDATE `Spotify_Access_Token` sat INNER JOIN User u ON u.id = sat.user_id SET token = ?, sat.date_added = CURRENT_TIMESTAMP() WHERE username = ?', [token, username]);
+        const res = await conn.query('UPDATE `Spotify_Access_Token` SET token = ?, date_added = CURRENT_TIMESTAMP() WHERE user = ?', [token, username]);
         
         conn.release();
 
@@ -201,7 +201,7 @@ export const getUserInfo = async (token: string): Promise<User> => {
         conn = await pool.getConnection();
         
         // Get email and username
-        const userInfo = await conn.query('SELECT u.id, username, email FROM User u INNER JOIN Spotify_Access_Token sat ON u.id = sat.user_id WHERE sat.token = ?', token);
+        const userInfo = await conn.query('SELECT username, email FROM User u INNER JOIN Spotify_Access_Token sat ON u.username = sat.user WHERE sat.token = ?', token);
         conn.release();
 
         if (userInfo.length === 0) {

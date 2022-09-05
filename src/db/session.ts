@@ -1,6 +1,6 @@
 import pool from './index';
 
-export const saveSessionCode = async (sessionCode: string, userId: number):Promise <boolean> => {
+export const saveSessionCode = async (sessionCode: string, username: string):Promise <boolean> => {
     let conn;
 
     if (sessionCode === undefined) {
@@ -10,7 +10,7 @@ export const saveSessionCode = async (sessionCode: string, userId: number):Promi
     try {
         conn = await pool.getConnection();
         
-        const res = await conn.query('INSERT INTO `Session` (`code`, `host`) VALUES (?, ?) ', [sessionCode, userId]);
+        const res = await conn.query('INSERT INTO `Session` (`code`, `host`) VALUES (?, ?) ', [sessionCode, username]);
 
         conn.release();
 
@@ -33,7 +33,7 @@ export const doesSessionExist = async (sessionCode: string, hostName: string): P
 
     try {
         conn = await pool.getConnection();
-        const checkIfSessionExists = await conn.query('SELECT s.id FROM Session s INNER JOIN User u ON u.id = s.host WHERE code = ? AND username = ?', [sessionCode, hostName]);
+        const checkIfSessionExists = await conn.query('SELECT host FROM Session WHERE code = ? AND host = ?', [sessionCode, hostName]);
         
         conn.release();
 
@@ -49,17 +49,17 @@ export const doesSessionExist = async (sessionCode: string, hostName: string): P
     return false;
 }
 
-export const getSessionHost= async (hostName: string) => {
+export const getSessionHost = async (hostName: string) => {
     let conn;
 
     try {
         conn = await pool.getConnection();
 
-        const sessionHostToken = await conn.query('SELECT token FROM User INNER JOIN Spotify_Access_Token sat ON User.id = sat.user_id WHERE username = ?', [hostName]);
+        const sessionHostToken = await conn.query('SELECT token FROM Spotify_Access_Token WHERE user = ?', [hostName]);
         conn.release();
         
         if (sessionHostToken.length > 0) {
-            // Will contain id & token
+            // Will contain token
             return sessionHostToken[0];
         }
 

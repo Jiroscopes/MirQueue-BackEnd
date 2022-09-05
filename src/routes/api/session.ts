@@ -21,32 +21,15 @@ router.post('/host/playback', getPlayback);
 }
 */
 async function getSessionCode(req: any, res: any) {
-
-	if (!req.body.user || !req.body.token || !req.body.code) {
-		res.sendStatus(400);
-        return;
-    }
-
 	if (req.body.code.length < 4) {
 		res.sendStatus(400);
 		return;
 	}
 
-	let { username, email } = req.body.user;
-	let { token, code } = req.body;
+	let username = req.session.username;
+	let { code } = req.body;
 	
-	if (!username || !email) {
-		res.sendStatus(401);
-		return;
-	}
 
-	// Verify token and user match DB
-	let userFromDB = await getUserInfo(token);
-
-	if (userFromDB.username !== username || userFromDB.email !== email) {
-		res.sendStatus(401);
-		return;
-	}
 
 	if(await doesSessionExist(code, username)) {
 		// Conflict
@@ -55,38 +38,25 @@ async function getSessionCode(req: any, res: any) {
 	}
 
 	// save session code
-	saveSessionCode(code, userFromDB.id);
+	saveSessionCode(code, username);
     
 	res.sendStatus(200);
 	return;
 }
 
 export async function isValidSessionCode(req: any, res: any) {
-	if (!req.body.user || !req.body.token || !req.body.code) {
+	if (!req.body.code) {
 		res.sendStatus(400);
         return;
     }
 
-	let { username, email } = req.body.user
+	let username = req.session.username;
 	let { token } = req.body;
 
 	// Code will be like "<username>/<code>"
 	let splitCode = req.body.code.split('/');
 	let host = splitCode[0];
 	let code = splitCode[1];
-
-	if (!username || !email) {
-		res.sendStatus(401);
-		return;
-	}
-
-	// Verify token and user match DB
-	let userFromDB = await getUserInfo(token);
-
-	if (userFromDB.username !== username || userFromDB.email !== email) {
-		res.sendStatus(401);
-		return;
-	}
 
 	// Verify session
 	if(await doesSessionExist(code, host)) {
@@ -102,7 +72,7 @@ export async function isValidSessionCode(req: any, res: any) {
 
 export async function addSong(msg: any) {
 
-	const {uri, session, user, trackID, trackName} = msg;
+	const {uri, session, trackID, trackName} = msg;
 	let {token: hostToken} = await getSessionHost(session.host);
 
 	if(!hostToken) {
