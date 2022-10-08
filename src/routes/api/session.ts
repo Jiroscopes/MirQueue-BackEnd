@@ -45,6 +45,7 @@ async function getSessionCode(req: any, res: any) {
 }
 
 export async function isValidSessionCode(req: any, res: any) {
+
 	if (!req.body.code) {
 		res.sendStatus(400);
         return;
@@ -57,6 +58,11 @@ export async function isValidSessionCode(req: any, res: any) {
 	let splitCode = req.body.code.split('/');
 	let host = splitCode[0];
 	let code = splitCode[1];
+
+	if (splitCode.length < 2) {
+		res.sendStatus(400);
+		return;
+	}
 
 	// Verify session
 	if(await doesSessionExist(code, host)) {
