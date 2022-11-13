@@ -52,16 +52,16 @@ router.get('/', async (req, res) => {
         req.session.save(() => {    
             // redirect to frontend with access code.
             res.cookie('mirqueue_user', username)
-            res.redirect(`${process.env.APP_URL}`);
+            res.redirect(`${config.client_url}`);
         });
     }
-
+    
     if (!verifiedUser) {
-        res.redirect(`${process.env.APP_URL}/login`);
+        res.redirect(`${config.client_url}/login`);
     }
 });
 
-const getAuthTokens = async (authCode: string) => {
+const getAuthTokens = async (authCode: string) => {    
     let request = new Request({
         host: 'accounts.spotify.com',
         port: 443,
@@ -76,7 +76,7 @@ const getAuthTokens = async (authCode: string) => {
         body: {
             grant_type: 'authorization_code',
             code: authCode,
-            redirect_uri: `${process.env.BACKEND_URL}/callback`,
+            redirect_uri: `${config.redirect_url()}`,
         },
     });
 
