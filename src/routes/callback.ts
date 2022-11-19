@@ -52,12 +52,12 @@ router.get('/', async (req, res) => {
         req.session.save(() => {    
             // redirect to frontend with access code.
             res.cookie('mirqueue_user', username)
-            res.redirect(`${config.client_url}`);
+            res.redirect(`${config.client_url()}`);
         });
     }
     
     if (!verifiedUser) {
-        res.redirect(`${config.client_url}/login`);
+        res.redirect(`${config.client_url()}/login`);
     }
 });
 

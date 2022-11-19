@@ -83,12 +83,12 @@ export async function addSong(msg: any) {
 
 	if(!hostToken) {
 		// Failed
-		return {status: 'failure', message: 'Host not found.'};
+		return {status: 'failure', type: 'add_song', message: 'Host not found.'};
 	};
 
 	if(!(await doesSessionExist(session.sessionCode, session.host))) {
 		// Failed
-		return {status: 'failure', message: 'Session not found.'};
+		return {status: 'failure', type: 'add_song', message: 'Session not found.'};
 	}
 
 	const uriPath = `/v1/me/player/queue?uri=${encodeURIComponent(uri)}`;
@@ -120,15 +120,70 @@ export async function addSong(msg: any) {
 				await addReqRetry.execute();
 			} catch (error) {
 				// We failed again
-				return {status: 'failure', message: 'Host unavailable'}
+				return {status: 'failure', type: 'add_song', message: 'Host unavailable'}
 			}
 
-			return {status: 'success', message: 'Added to queue.', track: {id: trackID, name: trackName}}
+			return {status: 'success', type: 'add_song', track: {id: trackID, name: trackName}}
 		}
-		return {status: 'failure', message: 'Something went wrong'}
+		return {status: 'failure', type: 'add_song', message: 'Something went wrong'}
 	}
 
-	return {status: 'success', message: 'Added to queue.', track: {id: trackID, name: trackName}}
+	return {status: 'success', type: 'add_song', track: {id: trackID, name: trackName}}
+}
+
+export async function checkPlayback(msg: any) {
+	const {session} = msg;
+	let {token: hostToken} = await getSessionHost(session.host);
+
+	if(!hostToken) {
+		// Failed
+		return {status: 'failure', type: 'check_playback', message: 'Host not found.'};
+	};
+
+	if(!(await doesSessionExist(session.sessionCode, session.host))) {
+		// Failed
+		return {status: 'failure', type: 'check_playback', message: 'Session not found.'};
+	}
+
+	const uriPath = `/v1/me/player`;
+
+	let requestOptions = {
+		host: 'api.spotify.com',
+		port: 443,
+		path: uriPath,
+		method: 'GET',
+		headers: {
+		  'Content-Type': 'application/json',
+		  Authorization: `Bearer ${hostToken}`,
+		},
+	};
+
+	let addReq = new Request(requestOptions);
+
+	let playback;
+
+	try {
+		// Do the thing
+		playback = await addReq.execute();
+	} catch (err) {
+		if (err.message === 'refresh') {
+			// Refresh host token in DB
+			let newToken = await refreshAuthToken(session.host);
+			requestOptions.headers.Authorization = `Bearer ${newToken.access_token}`
+			try {
+				let addReqRetry = new Request(requestOptions);
+				playback = await addReqRetry.execute();
+			} catch (error) {
+				// We failed again
+				return {status: 'failure', type: 'check_playback'}
+			}
+
+			return {status: 'success', type: 'check_playback', playback}
+		}
+		return {status: 'failure', type: 'check_playback'}
+	}
+
+	return {status: 'success', type: 'check_playback', playback}
 }
 
 export default router;

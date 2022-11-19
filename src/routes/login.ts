@@ -20,7 +20,7 @@ const router = express.Router();
 };
 
 router.get('/', async (req, res) => {
-    const scopes = 'user-read-private user-read-email user-top-read user-modify-playback-state';
+    const scopes = 'user-read-private user-read-email user-top-read user-modify-playback-state user-read-playback-state';
     const state = generateRandomString(16);
     const url = `https://accounts.spotify.com/authorize?response_type=code&client_id=${config.client_id}&scope=${encodeURIComponent(
         scopes
