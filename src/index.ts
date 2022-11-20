@@ -34,6 +34,9 @@ if (config.env === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sessionConfig.cookie.secure = true // serve secure cookies
 }
+
+const sessionParser = session(sessionConfig);
+
 app.use(session(sessionConfig))
 
 // Allow dotfiles - this is required for verification by Lets Encrypt's certbot
@@ -58,9 +61,12 @@ getClientCreds().then(val => {
     });
 
     server.on('upgrade', (req: any, socket: any, head: any) => {
-        wsServer.handleUpgrade(req, socket, head, socket => {
-            wsServer.emit('connection', socket, req);
-        });
+        // @ts-ignore
+        sessionParser(req, {}, () => {
+            wsServer.handleUpgrade(req, socket, head, ws => {
+                wsServer.emit('connection', ws, req);
+            });
+        })
     });
 });
 

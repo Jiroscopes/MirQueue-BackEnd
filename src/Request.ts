@@ -6,7 +6,7 @@ interface RequestHeaders {
     'Content-Length'?: number;
 }
 
-interface RequestOptions {
+export interface RequestOptions {
     host: string;
     port: number;
     path: string;
@@ -45,7 +45,7 @@ export default class MRequest {
         }
     }
     
-    async execute(): Promise<string> {
+    async execute(): Promise<any> {
         return new Promise((resolve, reject) => {
             const request = https.request(this.options, (res) => {
                 // Get a new token

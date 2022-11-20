@@ -2,9 +2,10 @@ import e, { Request, Response, NextFunction } from 'express';
 
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
     // No dice
-    if (!req.session || !req.session.accessToken) {
+    if (!req.session || !req.session.accessToken && req.baseUrl !== '/api/search') {
         console.error('No Session');
         req.session.destroy(() => {
+            res.clearCookie('mirqueue_user');
             res.redirect(`${process.env.APP_URL}/login`);
         });
         return;
@@ -13,6 +14,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
     if (!req.session.username) {
         console.error('No Username');
         req.session.destroy(() => {
+            res.clearCookie('mirqueue_user');
             res.redirect(`${process.env.APP_URL}/login`);
         });
         return;
@@ -26,6 +28,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
     if (now >= expireDate) {
         console.error('Expired');
         req.session.destroy(() => {
+            res.clearCookie('mirqueue_user');
             res.redirect(`${process.env.APP_URL}/login`);
         });
         return;
