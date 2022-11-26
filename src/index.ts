@@ -8,11 +8,12 @@ import * as path from 'path';
 import { getClientCreds } from './ClientCreds';
 import { wsServer } from './websocket';
 import MySQLSessionStore from 'express-mysql-session';
+
 // @ts-ignore
 const MySQLStore = MySQLSessionStore(session);
 
 const app = express();
-app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
+app.use(cors({credentials: true, origin: config.serverUrl}));
 // app.use(cors({credentials: true}));
 app.use(cookieParser('p1$N0H4cKM3'));
 

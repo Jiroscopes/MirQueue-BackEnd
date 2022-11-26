@@ -6,7 +6,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
         console.error('No Session');
         req.session.destroy(() => {
             res.clearCookie('mirqueue_user');
-            res.redirect(`${process.env.APP_URL}/login`);
+            res.sendStatus(401);
         });
         return;
     }
@@ -15,7 +15,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
         console.error('No Username');
         req.session.destroy(() => {
             res.clearCookie('mirqueue_user');
-            res.redirect(`${process.env.APP_URL}/login`);
+            res.sendStatus(401);
         });
         return;
     }
@@ -29,7 +29,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
         console.error('Expired');
         req.session.destroy(() => {
             res.clearCookie('mirqueue_user');
-            res.redirect(`${process.env.APP_URL}/login`);
+            res.sendStatus(401);
         });
         return;
     }

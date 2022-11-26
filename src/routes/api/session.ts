@@ -106,9 +106,6 @@ export async function isValidSessionCode(req: any, res: any) {
         return;
     }
 
-	let username = req.session.username;
-	let { token } = req.body;
-
 	// Code will be like "<username>/<code>"
 	let splitCode = req.body.code.split('/');
 	let host = splitCode[0];
