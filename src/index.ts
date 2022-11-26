@@ -25,6 +25,7 @@ const sessionConfig = {
     resave: false,
     store: new MySQLStore(config.db),
     cookie: {
+        domain: config.serverUrl,
         secure: false,
         maxAge: oneDay,
         resave: false 
@@ -32,8 +33,8 @@ const sessionConfig = {
 }
   
 if (config.env === 'production') {
-    app.set('trust proxy', 1) // trust first proxy
-    sessionConfig.cookie.secure = true // serve secure cookies
+    app.set('trust proxy', 2) // trust first proxy
+    // sessionConfig.cookie.secure = true // serve secure cookies
 }
 
 const sessionParser = session(sessionConfig);
