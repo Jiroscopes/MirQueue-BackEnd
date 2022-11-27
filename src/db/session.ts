@@ -71,3 +71,21 @@ export const getSessionHost = async (hostName: string) => {
 
     return false;
 }
+
+export const addUserToSession = async (username: string, sessionName: string) => {
+    let conn;
+
+    try {
+        conn = await pool.getConnection();
+
+        await conn.query('INSERT INTO SessionHistory (user, session) VALUES (?, ?) ON DUPLICATE KEY UPDATE joined_timestamp = CURRENT_TIMESTAMP()', [username, sessionName]);
+        conn.release();
+
+    } catch (error) {
+        conn.release();
+        console.error(error);
+        return false;
+    }
+
+    return false;
+}
