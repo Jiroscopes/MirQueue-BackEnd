@@ -49,9 +49,11 @@ router.get('/', async (req, res) => {
         req.session.username = username;
         req.session.email = email;
 
+        const oneDay = 1000 * 60 * 60 * 24;
+
         req.session.save(() => {    
             // redirect to frontend with access code.
-            res.cookie('mirqueue_user', username)
+            res.cookie('mirqueue_user', username, {maxAge: oneDay})
             res.redirect(`${config.client_url()}/dashboard`);
         });
     }
