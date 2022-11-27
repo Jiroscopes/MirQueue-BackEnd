@@ -175,6 +175,9 @@ export async function addSong(msg: any): Promise<WSResponse> {
 export async function checkPlayback(msg: any, userSession: any): Promise<WSResponse> {
 	const session = await validateRequest(msg, userSession);
 
+	if (!session) {
+		return { status: 'failure', type: 'check_playback' };
+	}
 	const uriPath = `/v1/me/player`;
 
 	let requestOptions = {

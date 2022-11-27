@@ -13,7 +13,7 @@ import MySQLSessionStore from 'express-mysql-session';
 const MySQLStore = MySQLSessionStore(session);
 
 const app = express();
-app.use(cors({credentials: true, origin: config.serverUrl}));
+app.use(cors({credentials: true, origin: `${config.serverUrl}${config.env === 'dev' ? `:3000` : ''}`}));
 // app.use(cors({credentials: true}));
 app.use(cookieParser('p1$N0H4cKM3'));
 
@@ -25,7 +25,6 @@ const sessionConfig = {
     resave: false,
     store: new MySQLStore(config.db),
     cookie: {
-        domain: config.serverUrl,
         secure: false,
         maxAge: oneDay,
         resave: false 
@@ -33,7 +32,7 @@ const sessionConfig = {
 }
   
 if (config.env === 'production') {
-    app.set('trust proxy', 2) // trust first proxy
+    app.set('trust proxy', 1) // trust first proxy
     // sessionConfig.cookie.secure = true // serve secure cookies
 }
 

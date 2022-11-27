@@ -216,3 +216,26 @@ export const getUserInfo = async (token: string): Promise<User> => {
         return null;
     }
 }
+
+export const getUserSessions = async (username: string) => {
+    let conn;
+
+    try {
+        conn = await pool.getConnection();
+        
+        // Get all sessions from a host
+        const sessions = await conn.query('SELECT code FROM Session WHERE host = ?', username);
+        conn.release();
+
+        if (sessions.length === 0) {
+            return null;
+        }
+
+        return sessions;
+
+    } catch (error) {
+        conn.release();
+        console.error(error);
+        return null;
+    }
+}
